@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KiyHub TV - Premium Riff Glassmorphism Experience</title>
+  <!-- HLS.js for direct streaming support -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: 'var(--bg-color)',
+            brandAccent: 'var(--accent-color)',
+            glassBg: 'var(--sidebar-bg)',
+            cardBg: 'var(--card-bg)',
+            glassBorder: 'var(--glass-border)'
+          },
+          boxShadow: {
+            glow: 'var(--focus-glow)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-color: #080a0f;
+      --sidebar-bg: rgba(12, 16, 24, 0.75);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-hover: rgba(255, 255, 255, 0.08);
+      --accent-color: #00f2fe;
+      --text-color: #f0f4f8;
+      --text-muted: #8c9ba5;
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --focus-glow: 0 0 25px rgba(0, 242, 254, 0.5);
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --grid-min-width: 190px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-family);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Glassmorphism scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-color);
+    }
+
+    /* Glass Panel Utility */
+    .glass-panel {
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* TV Focus Highlight */
+    .tv-focusable {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+    }
+
+    .tv-focusable:focus, .tv-focusable.is-focused {
+      box-shadow: var(--focus-glow) !important;
+      border-color: var(--accent-color) !important;
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .card-zoom:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: var(--focus-glow);
+      border-color: var(--accent-color);
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(16px);
+    }
+  </style>
+</head>
+<body class="flex flex-row h-screen w-screen overflow-hidden">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="w-64 glass-panel flex flex-col justify-between p-5 z-20 shrink-0 border-r">
+    <div>
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-2 mb-8 px-2">
+        <div class="text-2xl font-black tracking-wider uppercase text-cyan-400 drop-shadow-[0_0_12px_rgba(0,242,254,0.8)]">
+          KiyHub <span class="text-xs bg-cyan-400 text-black px-2 py-0.5 rounded font-bold align-middle">TV</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2 px-2">Navegación</div>
+      <nav class="flex flex-col gap-1.5" id="sidebarNav">
+        <button onclick="switchTab('home')" id="nav-home" class="tv-focusable nav-btn active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-transparent w-full text-left" tabindex="0">
+          <span>🏠</span> Inicio
+        </button>
+        <button onclick="switchTab('movies')" id="nav-movies" class="tv-focusable nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-transparent w-full text-left" tabindex="0">
+          <span>🎬</span> Películas
+        </button>
+        <button onclick="switchTab('series')" id="nav-series" class="tv-focusable nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-transparent w-full text-left" tabindex="0">
+          <span>📺</span> Series TV
+        </button>
+        <button onclick="switchTab('anime')" id="nav-anime" class="tv-focusable nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-transparent w-full text-left" tabindex="0">
+          <span>⛩️</span> Anime
+        </button>
+
+        <div class="text-xs font-bold uppercase text-gray-400 tracking-wider mt-5 mb-2 px-2">Ajustes & Red</div>
+        <button onclick="switchTab('api')" id="nav-api" class="tv-focusable nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-transparent w-full text-left" tabindex="0">
+          <span>🔑</span> Configuración API
+        </button>
+        <button onclick="switchTab('custom')" id="nav-custom" class="tv-focusable nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-transparent w-full text-left" tabindex="0">
+          <span>🔗</span> Stream Personalizado
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="tv-focusable nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-transparent w-full text-left" tabindex="0">
+          <span>🎨</span> Personalizar UI
+        </button>
+      </nav>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="p-3 rounded-xl bg-black/40 border border-white/10 text-xs text-gray-400 flex flex-col gap-1">
+      <div class="flex items-center justify-between">
+        <span>Estado TMDB:</span>
+        <span id="tmdbStatusBadge" class="text-yellow-400 font-bold">Demo / Mock</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span>Anime API:</span>
+        <span class="text-emerald-400 font-bold">Jikan / AniList</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN WRAPPER ================= -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+
+    <!-- TOP BAR -->
+    <header class="h-20 px-8 flex items-center justify-between border-b border-white/10 bg-black/30 backdrop-blur-md z-10">
+      <!-- Search Input -->
+      <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 w-full max-w-xl focus-within:border-cyan-400 focus-within:shadow-[0_0_20px_rgba(0,242,254,0.4)] transition-all">
+        <span class="text-gray-400 text-lg">🔍</span>
+        <input type="text" id="globalSearchInput" class="bg-transparent border-none outline-none text-white text-sm w-full placeholder-gray-500 tv-focusable" placeholder="Buscar películas, series o animes (TMDB & AniList)..." tabindex="0" oninput="debounceSearch()">
+        <button onclick="clearSearch()" class="text-xs text-gray-500 hover:text-white bg-white/10 px-2 py-1 rounded-md">Limpiar</button>
+      </div>
+
+      <!-- Quick Controls / Live Clock -->
+      <div class="flex items-center gap-6">
+        <div id="liveClock" class="text-sm font-mono text-cyan-400 font-bold tracking-widest hidden md:block">00:00:00</div>
+        <button onclick="toggleRemoteUI()" class="tv-focusable bg-white/10 hover:bg-cyan-500 hover:text-black border border-white/20 text-xs font-bold px-3 py-2 rounded-xl transition-all">
+          🎮 Control Virtual TV
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT SCROLL AREA -->
+    <main class="flex-1 overflow-y-auto p-8 relative" id="mainContainer">
+
+      <!-- SEARCH RESULTS SECTION -->
+      <section id="sec-search" class="section-page hidden">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+          <span>🔍 Resultados de Búsqueda:</span> <span id="searchQueryLabel" class="text-cyan-400">""</span>
+        </h2>
+        <div id="searchGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      </section>
+
+      <!-- HOME SECTION -->
+      <section id="sec-home" class="section-page">
+        <!-- Hero Banner -->
+        <div id="heroBanner" class="relative w-full h-80 rounded-3xl overflow-hidden mb-10 border border-white/10 bg-cover bg-center flex items-end p-8 glass-card">
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+          <div class="relative z-10 max-w-2xl">
+            <span class="bg-cyan-400 text-black text-xs font-black px-2.5 py-1 rounded-md uppercase tracking-wider mb-2 inline-block">Destacado Hoy</span>
+            <h1 id="heroTitle" class="text-3xl sm:text-4xl font-extrabold text-white mb-2">Cargando Tendencias...</h1>
+            <p id="heroOverview" class="text-gray-300 text-sm line-clamp-2 mb-4">Obteniendo los últimos estrenos globales desde las APIs oficiales...</p>
+            <button id="heroPlayBtn" onclick="" class="tv-focusable bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold px-6 py-2.5 rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(0,242,254,0.6)]">
+              ▶ Reproducir Ahora
+            </button>
+          </div>
+        </div>
+
+        <h2 class="text-xl font-bold mb-4 flex items-center justify-between">
+          <span>🔥 Tendencias en Películas</span>
+          <button onclick="switchTab('movies')" class="text-xs text-cyan-400 hover:underline">Ver Todo →</button>
+        </h2>
+        <div id="homeMoviesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10"></div>
+
+        <h2 class="text-xl font-bold mb-4 flex items-center justify-between">
+          <span>📺 Series Más Populares</span>
+          <button onclick="switchTab('series')" class="text-xs text-cyan-400 hover:underline">Ver Todo →</button>
+        </h2>
+        <div id="homeSeriesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10"></div>
+
+        <h2 class="text-xl font-bold mb-4 flex items-center justify-between">
+          <span>⛩️ Anime Destacado (AniList / Jikan)</span>
+          <button onclick="switchTab('anime')" class="text-xs text-cyan-400 hover:underline">Ver Todo →</button>
+        </h2>
+        <div id="homeAnimeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      </section>
+
+      <!-- MOVIES SECTION -->
+      <section id="sec-movies" class="section-page hidden">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">🎬 Catálogo de <span class="text-cyan-400">Películas</span></h2>
+        <div id="moviesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      </section>
+
+      <!-- SERIES SECTION -->
+      <section id="sec-series" class="section-page hidden">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">📺 Catálogo de <span class="text-cyan-400">Series de TV</span></h2>
+        <div id="seriesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      </section>
+
+      <!-- ANIME SECTION -->
+      <section id="sec-anime" class="section-page hidden">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">⛩️ Top <span class="text-cyan-400">Anime & Simulcasts</span></h2>
+        <div id="animeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      </section>
+
+      <!-- API CONFIG SECTION -->
+      <section id="sec-api" class="section-page hidden">
+        <h2 class="text-2xl font-bold mb-6">🔑 Configuración de <span class="text-cyan-400">APIs & Fuentes</span></h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+          <div class="glass-card p-6 rounded-2xl">
+            <h3 class="text-lg font-bold text-cyan-400 mb-2">TMDB API Key (TheMovieDB)</h3>
+            <p class="text-xs text-gray-400 mb-4">Ingresa tu API Key v3 personal de TMDB para obtener datos completos y sin límites de películas y series.</p>
+            <div class="flex flex-col gap-3">
+              <input type="text" id="tmdbApiKeyInput" class="tv-focusable bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none" placeholder="Ejemplo: 1234567890abcdef1234567890abcdef">
+              <button onclick="saveTmdbKey()" class="tv-focusable bg-cyan-400 hover:bg-cyan-300 text-black font-bold py-3 rounded-xl text-sm transition-all">
+                Guardar API Key
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl">
+            <h3 class="text-lg font-bold text-cyan-400 mb-2">Servidor Embed Predeterminado</h3>
+            <p class="text-xs text-gray-400 mb-4">Selecciona el servidor de streaming predeterminado para reproducir películas y series por ID.</p>
+            <select id="embedProviderSelect" class="tv-focusable bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none w-full" onchange="saveEmbedProvider()">
+              <option value="vidsrc">VidSrc.to (Recomendado)</option>
+              <option value="vidsrcme">VidSrc.me</option>
+              <option value="embedsu">Embed.su</option>
+              <option value="autoembed">AutoEmbed</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- CUSTOM STREAM SECTION -->
+      <section id="sec-custom" class="section-page hidden">
+        <h2 class="text-2xl font-bold mb-6">🔗 Reproducir <span class="text-cyan-400">Stream Personalizado</span></h2>
+        <div class="glass-card p-8 rounded-2xl max-w-2xl">
+          <label class="block text-sm font-medium text-gray-300 mb-2">URL del Video (HLS .m3u8 / Direct MP4 / Embed Player):</label>
+          <input type="text" id="customStreamInput" class="tv-focusable bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none w-full mb-4" placeholder="https://ejemplo.com/live/stream.m3u8">
+          
+          <div class="flex gap-4">
+            <button onclick="playCustomStream('hls')" class="tv-focusable flex-1 bg-cyan-400 hover:bg-cyan-300 text-black font-bold py-3 rounded-xl text-sm transition-all">
+              ▶ Reproducir con HLS / MP4
+            </button>
+            <button onclick="playCustomStream('embed')" class="tv-focusable flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl text-sm border border-white/10 transition-all">
+              🌐 Abrir en Iframe Embed
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- UI CUSTOMIZATION SECTION -->
+      <section id="sec-settings" class="section-page hidden">
+        <h2 class="text-2xl font-bold mb-6">🎨 Personalizar <span class="text-cyan-400">Interfaz Riff</span></h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+          <div class="glass-card p-6 rounded-2xl">
+            <h3 class="text-lg font-bold text-cyan-400 mb-4">Tema de Fondo</h3>
+            <select id="themeSelect" class="tv-focusable bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none w-full" onchange="changeTheme(this.value)">
+              <option value="riff">Riff Dark Glass (Predeterminado)</option>
+              <option value="oled">OLED True Black</option>
+              <option value="cyberpunk">Cyberpunk Neon</option>
+              <option value="synthwave">Synthwave Sunset</option>
+            </select>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl">
+            <h3 class="text-lg font-bold text-cyan-400 mb-4">Color de Resplandor Neón</h3>
+            <div class="flex gap-4">
+              <button onclick="changeAccent('#00f2fe')" class="w-10 h-10 rounded-full bg-[#00f2fe] border-2 border-white/20 hover:scale-110 transition-transform tv-focusable"></button>
+              <button onclick="changeAccent('#ff007f')" class="w-10 h-10 rounded-full bg-[#ff007f] border-2 border-white/20 hover:scale-110 transition-transform tv-focusable"></button>
+              <button onclick="changeAccent('#00ff66')" class="w-10 h-10 rounded-full bg-[#00ff66] border-2 border-white/20 hover:scale-110 transition-transform tv-focusable"></button>
+              <button onclick="changeAccent('#ffb703')" class="w-10 h-10 rounded-full bg-[#ffb703] border-2 border-white/20 hover:scale-110 transition-transform tv-focusable"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= VIRTUAL REMOTE CONTROL (TV TEST) ================= -->
+  <div id="virtualRemote" class="fixed bottom-6 right-6 glass-panel p-4 rounded-3xl flex flex-col items-center gap-2 z-50 shadow-2xl border border-white/20 hidden">
+    <div class="text-[10px] font-extrabold uppercase text-gray-400 tracking-widest mb-1">D-Pad Control</div>
+    <div class="flex justify-center">
+      <button onclick="dpadNavigate('up')" class="w-10 h-10 bg-white/10 hover:bg-cyan-400 hover:text-black rounded-full font-bold transition-all">▲</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="dpadNavigate('left')" class="w-10 h-10 bg-white/10 hover:bg-cyan-400 hover:text-black rounded-full font-bold transition-all">◀</button>
+      <button onclick="dpadNavigate('enter')" class="w-10 h-10 bg-cyan-400 text-black rounded-full font-black text-xs transition-all shadow-[0_0_15px_rgba(0,242,254,0.8)]">OK</button>
+      <button onclick="dpadNavigate('right')" class="w-10 h-10 bg-white/10 hover:bg-cyan-400 hover:text-black rounded-full font-bold transition-all">▶</button>
+    </div>
+    <div class="flex justify-center">
+      <button onclick="dpadNavigate('down')" class="w-10 h-10 bg-white/10 hover:bg-cyan-400 hover:text-black rounded-full font-bold transition-all">▼</button>
+    </div>
+  </div>
+
+  <!-- ================= MEDIA DETAIL & PLAYER MODAL ================= -->
+  <div id="mediaModal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4 sm:p-10 hidden">
+    <div class="glass-panel w-full max-w-5xl h-full max-h-[90vh] rounded-3xl overflow-hidden flex flex-col relative border border-white/20 shadow-2xl">
+      <!-- Close Button -->
+      <button onclick="closeModal()" class="absolute top-4 right-4 z-20 bg-black/60 hover:bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border border-white/20 transition-all tv-focusable">✕</button>
+
+      <!-- Video Stage Area -->
+      <div class="w-full h-[55%] bg-black relative flex items-center justify-center">
+        <!-- Direct Video Player -->
+        <video id="htmlVideoPlayer" class="w-full h-full object-contain hidden" controls></video>
+        <!-- Embed Iframe Player -->
+        <iframe id="embedPlayerFrame" class="w-full h-full border-none hidden" allowfullscreen></iframe>
+        <!-- Poster Placeholder before play -->
+        <div id="playerPlaceholder" class="absolute inset-0 bg-cover bg-center flex flex-col justify-end p-8">
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+          <div class="relative z-10 flex items-center gap-4">
+            <button id="modalStartPlayBtn" onclick="startModalPlayback()" class="tv-focusable bg-cyan-400 hover:bg-cyan-300 text-black font-black px-8 py-3 rounded-2xl text-base shadow-[0_0_25px_rgba(0,242,254,0.8)] transition-all flex items-center gap-2">
+              <span>▶</span> Reproducir
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Metadata Area -->
+      <div class="flex-1 p-6 overflow-y-auto bg-black/40 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h2 id="modalTitle" class="text-2xl font-extrabold text-white">Título del Contenido</h2>
+            <div class="flex items-center gap-3">
+              <span id="modalRating" class="text-xs bg-yellow-400 text-black font-bold px-2.5 py-1 rounded-md">★ 8.5</span>
+              <span id="modalYear" class="text-xs bg-white/10 text-gray-300 font-bold px-2.5 py-1 rounded-md">2024</span>
+            </div>
+          </div>
+          <p id="modalOverview" class="text-gray-300 text-sm mb-6 leading-relaxed">Sinopsis del contenido aquí...</p>
+        </div>
+
+        <!-- TV Series Episode / Source Selector -->
+        <div id="seriesControls" class="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-wrap items-center gap-4 hidden">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-gray-400">Temporada:</label>
+            <select id="seasonSelect" onchange="changeSeasonEpisode()" class="tv-focusable bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none">
+              <option value="1">Temporada 1</option>
+              <option value="2">Temporada 2</option>
+              <option value="3">Temporada 3</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-gray-400">Episodio:</label>
+            <select id="episodeSelect" onchange="changeSeasonEpisode()" class="tv-focusable bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none">
+              <option value="1">Episodio 1</option>
+              <option value="2">Episodio 2</option>
+              <option value="3">Episodio 3</option>
+              <option value="4">Episodio 4</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2 ml-auto">
+            <label class="text-xs font-bold text-gray-400">Servidor:</label>
+            <select id="activeSourceSelect" onchange="changeSeasonEpisode()" class="tv-focusable bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-cyan-400 font-bold outline-none">
+              <option value="vidsrc">VidSrc.to</option>
+              <option value="vidsrcme">VidSrc.me</option>
+              <option value="embedsu">Embed.su</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ENGINE ================= -->
+  <script>
+    // State Management
+    const state = {
+      tmdbKey: localStorage.getItem('kiyhub_tmdb_key') || '',
+      embedProvider: localStorage.getItem('kiyhub_embed_provider') || 'vidsrc',
+      theme: localStorage.getItem('kiyhub_theme') || 'riff',
+      accent: localStorage.getItem('kiyhub_accent') || '#00f2fe',
+      currentTab: 'home',
+      activeMedia: null,
+      hlsPlayer: null,
+      debounceTimer: null
+    };
+
+    // Public Fallback Keys & Endpoints
+    const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+    const DEMO_TMDB_KEY = '3fd2be6f0cd056636597328c6764f61e'; // Public demo key fallback
+
+    // --- APP INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      initApp();
+      startClock();
+    });
+
+    function initApp() {
+      // Load stored UI values
+      if (state.tmdbKey) {
+        document.getElementById('tmdbApiKeyInput').value = state.tmdbKey;
+        document.getElementById('tmdbStatusBadge').textContent = 'Activa (Personal)';
+        document.getElementById('tmdbStatusBadge').className = 'text-emerald-400 font-bold';
+      }
+      document.getElementById('embedProviderSelect').value = state.embedProvider;
+      document.getElementById('themeSelect').value = state.theme;
+
+      applyTheme(state.theme);
+      applyAccent(state.accent);
+
+      // Initial Fetch
+      loadHomeData();
+    }
+
+    function startClock() {
+      setInterval(() => {
+        const now = new Date();
+        document.getElementById('liveClock').textContent = now.toLocaleTimeString();
+      }, 1000);
+    }
+
+    // --- NAVIGATION TAB SWITCHER ---
+    function switchTab(tabId) {
+      state.currentTab = tabId;
+      document.querySelectorAll('.section-page').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active', 'border-cyan-400', 'bg-white/10'));
+
+      const targetSec = document.getElementById(`sec-${tabId}`);
+      if (targetSec) targetSec.classList.remove('hidden');
+
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      if (activeNav) activeNav.classList.add('active', 'border-cyan-400', 'bg-white/10');
+
+      if (tabId === 'movies' && !document.getElementById('moviesGrid').hasChildNodes()) loadMoviesPage();
+      if (tabId === 'series' && !document.getElementById('seriesGrid').hasChildNodes()) loadSeriesPage();
+      if (tabId === 'anime' && !document.getElementById('animeGrid').hasChildNodes()) loadAnimePage();
+
+      updateFocusables();
+    }
+
+    // --- API FETCHERS ---
+    function getTmdbKey() {
+      return state.tmdbKey ? state.tmdbKey : DEMO_TMDB_KEY;
+    }
+
+    async function fetchTMDB(endpoint) {
+      try {
+        const apiKey = getTmdbKey();
+        const res = await fetch(`${TMDB_BASE_URL}${endpoint}?api_key=${apiKey}&language=es-ES`);
+        if (!res.ok) throw new Error('API Error');
+        return await res.json();
+      } catch (e) {
+        console.warn('TMDB Fetch fallback', e);
+        return null;
+      }
+    }
+
+    async function fetchAnimeTop() {
+      try {
+        const res = await fetch('https://api.jikan.moe/v4/top/anime?limit=10');
+        const data = await res.json();
+        return data.data || [];
+      } catch (e) {
+        console.warn('Jikan Anime Fetch error', e);
+        return [];
+      }
+    }
+
+    // --- LOAD HOME DATA ---
+    async function loadHomeData() {
+      // Fetch Trending Movies
+      const moviesData = await fetchTMDB('/trending/movie/day');
+      if (moviesData && moviesData.results) {
+        const heroItem = moviesData.results[0];
+        setupHeroBanner(heroItem);
+        renderCardGrid('homeMoviesGrid', moviesData.results.slice(1, 6), 'movie');
+      } else {
+        renderMockData('homeMoviesGrid', 'movie');
+      }
+
+      // Fetch Trending Series
+      const seriesData = await fetchTMDB('/trending/tv/day');
+      if (seriesData && seriesData.results) {
+        renderCardGrid('homeSeriesGrid', seriesData.results.slice(0, 5), 'tv');
+      } else {
+        renderMockData('homeSeriesGrid', 'tv');
+      }
+
+      // Fetch Anime
+      const animeData = await fetchAnimeTop();
+      if (animeData.length > 0) {
+        renderAnimeGrid('homeAnimeGrid', animeData.slice(0, 5));
+      } else {
+        renderMockData('homeAnimeGrid', 'anime');
+      }
+
+      updateFocusables();
+    }
+
+    function setupHeroBanner(item) {
+      const banner = document.getElementById('heroBanner');
+      const backdrop = item.backdrop_path ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200';
+      banner.style.backgroundImage = `url('${backdrop}')`;
+      document.getElementById('heroTitle').textContent = item.title || item.name;
+      document.getElementById('heroOverview').textContent = item.overview || 'Sin descripción disponible.';
+      document.getElementById('heroPlayBtn').onclick = () => openMediaModal(item, 'movie');
+    }
+
+    async function loadMoviesPage() {
+      const data = await fetchTMDB('/movie/popular');
+      if (data && data.results) {
+        renderCardGrid('moviesGrid', data.results, 'movie');
+      }
+    }
+
+    async function loadSeriesPage() {
+      const data = await fetchTMDB('/tv/popular');
+      if (data && data.results) {
+        renderCardGrid('seriesGrid', data.results, 'tv');
+      }
+    }
+
+    async function loadAnimePage() {
+      const data = await fetchAnimeTop();
+      renderAnimeGrid('animeGrid', data);
+    }
+
+    // --- RENDER GRID HELPERS ---
+    function renderCardGrid(elementId, items, type) {
+      const grid = document.getElementById(elementId);
+      grid.innerHTML = '';
+
+      items.forEach(item => {
+        const title = item.title || item.name;
+        const poster = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500';
+        const rating = item.vote_average ? item.vote_average.toFixed(1) : '7.5';
+        const date = (item.release_date || item.first_air_date || '2024').substring(0, 4);
+
+        const card = document.createElement('div');
+        card.className = 'glass-card rounded-2xl overflow-hidden cursor-pointer tv-focusable card-zoom flex flex-col';
+        card.setAttribute('tabindex', '0');
+        card.onclick = () => openMediaModal(item, type);
+
+        card.innerHTML = `
+          <div class="relative w-full h-64 bg-gray-900">
+            <img src="${poster}" class="w-full h-full object-cover" loading="lazy" alt="${title}">
+            <div class="absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400">
+              ★ ${rating}
+            </div>
+          </div>
+          <div class="p-3 flex flex-col justify-between flex-1">
+            <h3 class="font-bold text-sm text-white truncate">${title}</h3>
+            <span class="text-xs text-gray-400 font-semibold mt-1">${date} • ${type === 'movie' ? 'Película' : 'Serie'}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderAnimeGrid(elementId, items) {
+      const grid = document.getElementById(elementId);
+      grid.innerHTML = '';
+
+      items.forEach(item => {
+        const title = item.title;
+        const poster = item.images?.jpg?.image_url || 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500';
+        const rating = item.score ? item.score : '8.0';
+
+        const card = document.createElement('div');
+        card.className = 'glass-card rounded-2xl overflow-hidden cursor-pointer tv-focusable card-zoom flex flex-col';
+        card.setAttribute('tabindex', '0');
+        card.onclick = () => openAnimeModal(item);
+
+        card.innerHTML = `
+          <div class="relative w-full h-64 bg-gray-900">
+            <img src="${poster}" class="w-full h-full object-cover" loading="lazy" alt="${title}">
+            <div class="absolute top-3 right-3 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400">
+              ★ ${rating}
+            </div>
+          </div>
+          <div class="p-3 flex flex-col justify-between flex-1">
+            <h3 class="font-bold text-sm text-white truncate">${title}</h3>
+            <span class="text-xs text-gray-400 font-semibold mt-1">Anime • AniList</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderMockData(elementId, type) {
+      const grid = document.getElementById(elementId);
+      grid.innerHTML = '<div class="col-span-full text-xs text-gray-400 italic">Cargando datos demostrativos... Ingresa una API key en Configuración para contenido en tiempo real.</div>';
+    }
+
+    // --- SEARCH FUNCTIONALITY ---
+    function debounceSearch() {
+      clearTimeout(state.debounceTimer);
+      state.debounceTimer = setTimeout(() => {
+        const query = document.getElementById('globalSearchInput').value.trim();
+        if (query.length > 2) {
+          performSearch(query);
+        } else if (query.length === 0) {
+          switchTab('home');
+        }
+      }, 500);
+    }
+
+    async function performSearch(query) {
+      document.getElementById('searchQueryLabel').textContent = `"${query}"`;
+      switchTab('search');
+
+      const data = await fetchTMDB(`/search/multi?query=${encodeURIComponent(query)}`);
+      if (data && data.results) {
+        renderCardGrid('searchGrid', data.results.filter(r => r.media_type !== 'person'), 'movie');
+      }
+    }
+
+    function clearSearch() {
+      document.getElementById('globalSearchInput').value = '';
+      switchTab('home');
+    }
+
+    // --- MODAL & STREAMING EMBED ENGINE ---
+    function openMediaModal(item, type) {
+      state.activeMedia = { ...item, mediaType: type };
+      
+      const modal = document.getElementById('mediaModal');
+      const title = item.title || item.name;
+      const backdrop = item.backdrop_path ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200';
+
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalOverview').textContent = item.overview || 'Sinopsis no disponible.';
+      document.getElementById('modalRating').textContent = `★ ${(item.vote_average || 7.5).toFixed(1)}`;
+      document.getElementById('modalYear').textContent = (item.release_date || item.first_air_date || '2024').substring(0, 4);
+
+      document.getElementById('playerPlaceholder').style.backgroundImage = `url('${backdrop}')`;
+      document.getElementById('playerPlaceholder').classList.remove('hidden');
+      document.getElementById('htmlVideoPlayer').classList.add('hidden');
+      document.getElementById('embedPlayerFrame').classList.add('hidden');
+
+      // Show episode selector if TV Series
+      if (type === 'tv') {
+        document.getElementById('seriesControls').classList.remove('hidden');
+      } else {
+        document.getElementById('seriesControls').classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      updateFocusables();
+    }
+
+    function openAnimeModal(item) {
+      state.activeMedia = { id: item.mal_id, title: item.title, mediaType: 'anime' };
+      openMediaModal({
+        title: item.title,
+        overview: item.synopsis,
+        vote_average: item.score,
+        release_date: item.year ? String(item.year) : '2024'
+      }, 'anime');
+    }
+
+    function startModalPlayback() {
+      document.getElementById('playerPlaceholder').classList.add('hidden');
+      const item = state.activeMedia;
+      const provider = document.getElementById('activeSourceSelect').value || state.embedProvider;
+
+      if (!item) return;
+
+      const iframe = document.getElementById('embedPlayerFrame');
+      let embedUrl = '';
+
+      if (item.mediaType === 'movie') {
+        if (provider === 'vidsrc') embedUrl = `https://vidsrc.to/embed/movie/${item.id}`;
+        else if (provider === 'vidsrcme') embedUrl = `https://vidsrc.me/embed/movie?tmdb=${item.id}`;
+        else embedUrl = `https://embed.su/embed/movie/${item.id}`;
+      } else if (item.mediaType === 'tv') {
+        const season = document.getElementById('seasonSelect').value;
+        const episode = document.getElementById('episodeSelect').value;
+        if (provider === 'vidsrc') embedUrl = `https://vidsrc.to/embed/tv/${item.id}/${season}/${episode}`;
+        else embedUrl = `https://vidsrc.me/embed/tv?tmdb=${item.id}&season=${season}&episode=${episode}`;
+      } else {
+        // Fallback video for anime demo
+        playDirectHLS('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+        return;
+      }
+
+      iframe.src = embedUrl;
+      iframe.classList.remove('hidden');
+    }
+
+    function changeSeasonEpisode() {
+      if (!document.getElementById('playerPlaceholder').classList.contains('hidden')) return;
+      startModalPlayback();
+    }
+
+    function playDirectHLS(url) {
+      const video = document.getElementById('htmlVideoPlayer');
+      video.classList.remove('hidden');
+
+      if (url.includes('.m3u8') && Hls.isSupported()) {
+        if (state.hlsPlayer) state.hlsPlayer.destroy();
+        state.hlsPlayer = new Hls();
+        state.hlsPlayer.loadSource(url);
+        state.hlsPlayer.attachMedia(video);
+        state.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+      } else {
+        video.src = url;
+        video.play();
+      }
+    }
+
+    function playCustomStream(mode) {
+      const url = document.getElementById('customStreamInput').value.trim();
+      if (!url) return alert('Por favor ingresa una URL válida.');
+
+      if (mode === 'hls') {
+        state.activeMedia = { title: 'Custom Stream', overview: url, mediaType: 'custom' };
+        document.getElementById('playerPlaceholder').classList.add('hidden');
+        document.getElementById('mediaModal').classList.remove('hidden');
+        playDirectHLS(url);
+      } else {
+        const iframe = document.getElementById('embedPlayerFrame');
+        iframe.src = url;
+        iframe.classList.remove('hidden');
+        document.getElementById('playerPlaceholder').classList.add('hidden');
+        document.getElementById('mediaModal').classList.remove('hidden');
+      }
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('mediaModal');
+      const video = document.getElementById('htmlVideoPlayer');
+      const iframe = document.getElementById('embedPlayerFrame');
+
+      video.pause();
+      video.src = '';
+      iframe.src = '';
+
+      if (state.hlsPlayer) {
+        state.hlsPlayer.destroy();
+        state.hlsPlayer = null;
+      }
+
+      modal.classList.add('hidden');
+    }
+
+    // --- CONFIG & CUSTOMIZATION SETTINGS ---
+    function saveTmdbKey() {
+      const key = document.getElementById('tmdbApiKeyInput').value.trim();
+      state.tmdbKey = key;
+      localStorage.setItem('kiyhub_tmdb_key', key);
+      alert('API Key de TMDB guardada correctamente.');
+      initApp();
+    }
+
+    function saveEmbedProvider() {
+      const provider = document.getElementById('embedProviderSelect').value;
+      state.embedProvider = provider;
+      localStorage.setItem('kiyhub_embed_provider', provider);
+    }
+
+    function changeTheme(theme) {
+      state.theme = theme;
+      localStorage.setItem('kiyhub_theme', theme);
+      applyTheme(theme);
+    }
+
+    function applyTheme(theme) {
+      if (theme === 'oled') {
+        document.documentElement.style.setProperty('--bg-color', '#000000');
+        document.documentElement.style.setProperty('--sidebar-bg', '#050505');
+        document.documentElement.style.setProperty('--card-bg', '#0a0a0a');
+      } else if (theme === 'cyberpunk') {
+        document.documentElement.style.setProperty('--bg-color', '#0a0214');
+        document.documentElement.style.setProperty('--sidebar-bg', 'rgba(25, 5, 45, 0.85)');
+        document.documentElement.style.setProperty('--card-bg', 'rgba(255, 0, 127, 0.05)');
+      } else if (theme === 'synthwave') {
+        document.documentElement.style.setProperty('--bg-color', '#1a0933');
+        document.documentElement.style.setProperty('--sidebar-bg', 'rgba(40, 15, 70, 0.8)');
+        document.documentElement.style.setProperty('--card-bg', 'rgba(255, 183, 3, 0.05)');
+      } else {
+        document.documentElement.style.setProperty('--bg-color', '#080a0f');
+        document.documentElement.style.setProperty('--sidebar-bg', 'rgba(12, 16, 24, 0.75)');
+        document.documentElement.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.03)');
+      }
+    }
+
+    function changeAccent(color) {
+      state.accent = color;
+      localStorage.setItem('kiyhub_accent', color);
+      applyAccent(color);
+    }
+
+    function applyAccent(color) {
+      document.documentElement.style.setProperty('--accent-color', color);
+      document.documentElement.style.setProperty('--focus-glow', `0 0 25px ${color}88`);
+    }
+
+    // --- TV D-PAD & KEYBOARD NAVIGATION ENGINE ---
+    let focusables = [];
+    let focusIndex = 0;
+
+    function updateFocusables() {
+      focusables = Array.from(document.querySelectorAll('.tv-focusable, input, button, select, [tabindex="0"]'))
+        .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0);
+    }
+
+    function dpadNavigate(direction) {
+      updateFocusables();
+      if (focusables.length === 0) return;
+
+      if (direction === 'down' || direction === 'right') {
+        focusIndex = (focusIndex + 1) % focusables.length;
+      } else if (direction === 'up' || direction === 'left') {
+        focusIndex = (focusIndex - 1 + focusables.length) % focusables.length;
+      } else if (direction === 'enter') {
+        focusables[focusIndex].click();
+        return;
+      }
+
+      focusables[focusIndex].focus();
+    }
+
+    function toggleRemoteUI() {
+      const remote = document.getElementById('virtualRemote');
+      remote.classList.toggle('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (document.activeElement.tagName === 'INPUT' && e.key !== 'Escape' && e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+        return;
+      }
+      if (e.key === 'ArrowUp') { e.preventDefault(); dpadNavigate('up'); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); dpadNavigate('down'); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); dpadNavigate('left'); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); dpadNavigate('right'); }
+      if (e.key === 'Enter') { dpadNavigate('enter'); }
+      if (e.key === 'Escape') { closeModal(); }
+    });
+  </script>
+</body>
+</html>
